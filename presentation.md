@@ -483,3 +483,5 @@ _**When you're calling `.fit()` and `.predict()`, you've been doing statistics a
 - [On Discriminative vs. Generative classifiers: A comparison of logistic regression and naive Bayes](http://papers.nips.cc/paper/2020-on-discriminative-vs-generative-classifiers-a-comparison-of-logistic-regression-and-naive-bayes.pdf)
 
 ---
+
+[github.com/cavaunpeu/statistics-all-along](https://github.com/cavaunpeu/statistics-all-along)
