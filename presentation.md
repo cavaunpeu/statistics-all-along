@@ -1,10 +1,13 @@
-# you've been doing statistics all along
+autoscale: true
+
+## you've been doing statistics all along
+
 ---
 
-# ML is:
+## ML is:
 
 ---
-| dogs | cats | turtles |
+| dogs    | cats     | turtles  |
 |---------|----------|----------|
 | 3       | 4        | 3        |
 | 1       | 9        | 6        |
@@ -25,7 +28,7 @@ y = df['turtles']
 ```
 ---
 
-So, how do we do this?
+## so, how do we do this?
 
 ---
 
@@ -35,32 +38,34 @@ import sklearn
 
 ---
 
-This presentation starts and ends here. Your head is currently above water; we're going to dive into the pool, touch the bottom, then come back to the surface.
+This presentation starts and ends here.
+
+Your head is currently above water; we're going to dive into the pool, touch the bottom, then come back to the surface.
 
 ---
 
-# Linear regression
+## linear regression
 
 ---
 
-```python
-y = weights^T * X
-```
+`y = weights^T * x`
 
-In fancy math:
+<br>
 
 $$
 \hat{y} = \theta^Tx
 $$
 
 ---
-$\hat{y}$ is computed as a function of both $x$ and $\theta$. We'd like this value to be close to the to the true $y$.
-
-We quantify this "closeness" with the "mean squared error" in the canonical case. This is defined exactly as it reads:
+$$\hat{y}$$ is computed as a function of both $$x$$ and $$\theta$$. We'd like this value to be close to the true $$y$$.
 
 $$\mathcal{L} = \sum\limits_{i=1}^m (\theta^Tx^{(i)} - y^{(i)})^2$$
 
+---
+
 For clarity, now in semi-obnoxious Python:
+
+<br>
 
 ```python
 error = guess - true
@@ -68,17 +73,27 @@ loss = (error**2).sum()
 ```
 
 ---
-> "I do machine learning; I should probably learn statistics, though, too?"
+> I do machine learning; I should probably learn statistics, though, too?
 
 -- me at some point; hopefully none of you
 
 ---
 
-`df['dogs']` is a "random variable." It doesn't depend on anything.
+* `df['dogs']` is a "random variable." It doesn't depend on anything.
 
-`df['turtles']` is a "random variable." It depends on `df['dogs']` and `df['cats']`.
+* `df['cats']` is a "random variable." It doesn't depend on anything.
+
+--
+
+* `df['turtles']` is a "random variable." It depends on `df['dogs']` and `df['cats']`.
+
+---
 
 Goal: change `weights` so as to minimize our error function.
+
+---
+
+## probability distributions
 
 ---
 
@@ -87,6 +102,11 @@ This is a probability distribution. It is a lookup table for the likelihood of o
 ```python
 cats = {2: .17, 5: .24, 3: .11, 9: .48}
 ```
+--
+
+Trivially, the values should sum to 1.
+
+---
 
 Typically, probability distributions take parameters which control their shape. Let's define a function to illustrate this:
 
@@ -101,11 +121,15 @@ In [2]: prob_distribution_cats(λ=84)
 Out[2]: {2: .09, 5: .32, 3: .17, 9: .42}
 ```
 
-The possible values of a random variable are dictated by a probability distribution.
-
 ---
 
-What probability distributions dictate the values of our random variables?
+The realized values of a random variable are dictated by its probability distribution.
+
+--
+
+* What probability distributions dictate the values of our random variables?
+
+---
 
 Let's start by writing our data as draws from a distribution.
 
@@ -115,23 +139,31 @@ $$
 
 ---
 
-Which probability distributions describe our data? Let's start with $y$, and assume it is distributed *normally* for now, i.e.
+Which probability distributions describe our data? Let's start with $$y$$ and assume it is distributed *normally*, i.e.
 
 $$
 y \sim \mathcal{N}(\mu, \sigma^2)
 $$
 
-where $\mathcal{N}$ gives the normal distribution, i.e.
-
-![](https://mathbitsnotebook.com/Algebra2/Statistics/normalturqa.jpg)
-
-Naturally, will assume that $\mu = \theta^Tx$, and $\sigma$ describes some irreducible error in our estimate of $y$. Irreducible error means: $y$ really depends on some other input - e.g. `df['zebras']` - that we haven't included in our model.
+where $$\mathcal{N}$$ gives the normal distribution.
 
 ---
 
-The values of $y$ are distributed as $y \sim \mathcal{N}(\theta^Tx, \sigma^2)$.
+Naturally, will assume that $$\mu = \theta^Tx$$, where $$\sigma$$ describes some irreducible error in our estimate of $$y$$.
 
-The probability of drawing a specific value of $y^{(i)}$ given $x^{(i)}$ and $\theta$ is given by the normal likelihood function:
+Irreducible error means: $$y$$ really depends on some other input - e.g. `df['zebras']` - that we haven't included in our model.
+
+---
+
+## likelihood functions
+
+---
+
+The values of $$y$$ are distributed as $$y \sim \mathcal{N}(\theta^Tx, \sigma^2)$$.
+
+The probability of drawing a specific value of $$y^{(i)}$$ given $$x^{(i)}$$ and $$\theta$$ is given by the normal likelihood function.
+
+---
 
 $$
 P(y^{(i)}\vert x^{(i)}; \theta) = \frac{1}{\sqrt{2\pi}\sigma}\exp{\bigg(-\frac{(y^{(i)} - \theta^Tx^{(i)})^2}{2\sigma^2}\bigg)}
@@ -141,33 +173,41 @@ $$
 
 ---
 
-Goal: change `weights` so as to minimize our error function.
+* Goal: change `weights` so as to minimize our error function.
 
-Which should we choose?
+_**Which should we choose?**_
+
+---
+
+## maximum likelihood estimation
 
 ---
 
 A Moroccan walks into a bar. He's wearing a football jersey that's missing a sleeve. He has a black eye, and blood on his jeans. How did he most likely spend his day?
 
+---
+
 1. At home, reading a book.
 2. Training for a bicycle race.
-3. At the WAC vs. Raja game drinking Casablanca beers with his friends - all of whom are MMA fighters and hate the other team.
+3. At the WAC vs. Raja game drinking Casablanca beers with his friends - all of whom are MMA fighters and despise the other team.
 
 ---
 
-Which `weights` maximize the likelihood of having observed the $y$ that we did?
-
-This is called the **maximum likelihood estimate**. To compute it, we simply pick the `weights` that maximize $P(y^{(i)}\vert x^{(i)}; \theta)$ from above. However, we're not just concerned about one outcome $y^{(i)}$; instead, we care about them all.
+_**Which `weights` maximize the likelihood of having observed the $$y$$ that we did?**_
 
 ---
 
-Assuming that $y^{(i)}$ values are independent of one another, we can write their *joint* likelihood as follows:
+This is called the **maximum likelihood estimate**. To compute it, we simply pick the `weights` that maximize $$P(y^{(i)}\vert x^{(i)}; \theta)$$ from above. However, we're not just concerned about one outcome $$y^{(i)}$$; instead, we care about them all.
+
+---
+
+Assuming that $$y^{(i)}$$ values are independent of one another, we can write their *joint* likelihood as follows:
 
 $$
 P(y\vert x; \theta) = \prod\limits_{i=1}^{m}P(y^{(i)}\vert x^{(i)}; \theta)
 $$
 
-_**There is nothing scary about this product; whereas the lone term gives the likelihood of one data point, the product gives the likelihood of having observed all data points. This is akin to:**_
+_**There is nothing scary about this product**_; whereas the lone term gives the likelihood of one data point, the product gives the likelihood of having observed all data points. This is akin to:
 
 ```python
 die = choose_from([1, 2, 3, 4, 5, 6])
@@ -176,7 +216,7 @@ P(die > 2, die < 4, die == 1) = 4/6 * 3/6 * 1/6
 
 ---
 
-Since probabilities are numbers in $[0, 1]$, the product of a bunch of probabilities gets very small, very quick. For this reason, we often take the natural logarithm: the log of a product becomes the sum of logs.
+Since probabilities are numbers in $$[0, 1]$$, the product of a bunch of probabilities gets very small, very quick. For this reason, we often take the natural logarithm.
 
 $$
 \begin{align*}
@@ -190,49 +230,50 @@ $$
 \end{align*}
 $$
 
-_**Maximizing the log-likelihood of our data with respect to $\theta$, i.e. `weights`, is equivalent to maximizing the negative mean squared error between $y$ and $\hat{y}$.**_
+_**Maximizing the log-likelihood of our data with respect to $$\theta$$, i.e. `weights`, is equivalent to maximizing the negative mean squared error between $$y$$ and $$\hat{y}$$.**_
 
 ---
 
-Most optimization routines, i.e. strategies for actually solving for $\theta$, minimize instead of maximize. As such, in machine learning, we both do and say:
+Most optimization routines minimize.
 
-_**Minimizing the log-likelihood of our data with respect to $\theta$, i.e. `weights`, is equivalent to minimizing the mean squared error between $y$ and $\hat{y}$.**_
+_**Minimizing the log-likelihood of our data with respect to $$\theta$$, i.e. `weights`, is equivalent to minimizing the mean squared error between $$y$$ and $$\hat{y}$$.**_
 
 ---
 
-Logistic regression:
+## logistic regression
+
+---
 
 $$
 p = \frac{1}{1 + e^{-\theta^Tx}}
 $$
 
-Canonical loss function:
-
 $$
-\mathcal{L} = \sum\limits_{i = 1}^m y^{(i)}\log{p^{(i)}} + (1 - y^{(i)})\log{(1 - p^{(i)})}
+\mathcal{L} = -\sum\limits_{i = 1}^m y^{(i)}\log{p^{(i)}} + (1 - y^{(i)})\log{(1 - p^{(i)})}
 $$
 
 ---
 
-In probabilistic terms:
-
-In logistic regression, $y$ is a binary random variable: it is a thing that takes values in $\{0, 1\}$. Given $x$ and $\theta$, which likelihood function tells us the number of $1$'s we can expect to see over $n$ trials?
-
-![](http://www.boost.org/doc/libs/1_52_0/libs/math/doc/sf_and_dist/graphs/binomial_pdf_1.png)
+$$y$$ is a binary random variable: it is a thing that takes values in $$\{0, 1\}$$.
 
 ---
 
-Given a binomial likelihood:
+![inline](http://www.boost.org/doc/libs/1_52_0/libs/math/doc/sf_and_dist/graphs/binomial_pdf_1.png)
 
-$$P(y\vert x; \theta) = \prod\limits_{i = 1}^m(p^{(i)})^{y^{(i)}}(1 - p^{(i)})^{1 - y^{(i)}}$$
+---
 
-If this looks confusing:
-- Disregard the left side
-- Ask yourself: what is the probability of observing the following specific sequence of coin flips, where $P(\text{heads}) = .7$:
+$$
+P(y\vert x; \theta) = \prod\limits_{i = 1}^m(p^{(i)})^{y^{(i)}}(1 - p^{(i)})^{1 - y^{(i)}}
+$$
+
+**If this looks confusing:**
+
+* Disregard the left side
+* Ask yourself: what is the probability of observing the following specific sequence of coin flips, where $$P(\text{heads}) = .7$$:
 
 $$
 \begin{align*}
-P(\text{heads}, \text{tails}, \text{heads}, \text{heads}, \text{heads})
+P(\text{heads}, \text{tails}, \text{heads}, \text{heads})
 &= (.7^1 * .3^0)(.7^0 * .3^1)(.7^1 * .3^0)(.7^1 * .3^0)\\
 &= .7 * .3 * .7 * .7\\
 &= .102899
@@ -241,7 +282,7 @@ $$
 
 ---
 
-The negative log-likelihood gives:
+Negative log-likelihood:
 
 $$
 \begin{align*}
@@ -257,11 +298,11 @@ This will look familiar as well.
 
 ---
 
-![](./figures/bayes_theorem_betanalpha.png)
+> Remember that using Bayes' theorem doesn't make you a Bayesian. Quantifying uncertainty with probability makes you a Bayesian.
+
+-- Michael Betancourt‏ [(@betanalpha)](https://twitter.com/betanalpha)
 
 ---
-
-Bayes Theoreom:
 
 $$
 P(y \vert X) = \frac{P(X\vert y)P(y)}{P(X)} = \frac{P(X, y)}{P(X)}
@@ -269,44 +310,49 @@ $$
 
 ---
 
-# Multi-class classification
+## classification
 
 ---
 
-| dogs | cats | headache |
+| dogs    | cats     | headache |
 |---------|----------|----------|
-| 3       | 4        | high        |
-| 1       | 9        | high        |
-| 2       | 2        | low        |
-| 5       | 1        | medium        |
-| 3       | 3        | low        |
-| 6       | 5        | high        |
-| 4       | 8        | low        |
-| 7       | 1        | medium        |
+| 3       | 4        | high     |
+| 1       | 9        | high     |
+| 2       | 2        | low      |
+| 5       | 1        | medium   |
+| 3       | 3        | low      |
+| 6       | 5        | high     |
+| 4       | 8        | low      |
+| 7       | 1        | medium   |
 
 ---
 
-Discriminative models jump directly to estimating $P(y \vert X)$ without modeling its component parts $P(X\vert y), P(y)$ and $P(X)$.
+_**Discriminative models jump directly to estimating $$P(y \vert X)$$ without computing $$P(X\vert y), P(y)$$ and $$P(X)$$.**_
+
+--
 
 In effect, they can distinguish Darija from French, but can't speak either.
 
 ---
 
-Generative models model $P(X\vert y), P(y)$ and $P(X)$. To generate new data, we draw from $P(y)$, then $P(X\vert y)$. To make predictions, we solicit $P(y), P(X\vert y)$, and $P(X)$, then employ Bayes rule outright.
+_**Generative models compute $$P(X\vert y), P(y)$$ and $$P(X)$$, then estimate $$P(y \vert X)$$ via Bayes' theorem.**_
+
+--
 
 Generative models speak fluent Darija and French. They can distinguish the two because duh, they speak each one and know their differences.
 
 ---
 
-# Generative models
+## generative models
 
 ---
 
-# The joint distribution
+## the joint distribution
 
-Generative models start by modeling the *joint distribution* of our data, i.e. $P(X, y) = P(X\vert y)P(y)$. Wikipedia (via [this](http://stackoverflow.com/questions/879432/what-is-the-difference-between-a-generative-and-discriminative-algorithm) StackOverflow thread, I think) gives a great example of the difference between joint and conditional distributions:
+Generative models start by modeling the *joint distribution* of our data, i.e. $$P(X, y) = P(X\vert y)P(y)$$.
 
-![](./figures/joint_vs_conditional_distributions.png)
+
+![inline fit](./figures/joint_vs_conditional_distributions.png)
 
 ---
 
@@ -316,41 +362,47 @@ $$
 P_{\theta}(x, y) = P_{\theta}(x\vert y)P_{\theta}(y) = P_{\theta}(y)\prod\limits_{i=1}^m P_{\theta}(x_i\vert y)
 $$
 
-- Estimate $\hat{\theta}$ as before
+- Estimate $$\hat{\theta}$$ as before
 - To make a prediction:
 
 ```python
 np.argmax([P(x, y) for y in ['low', 'medium', 'high']])
 ```
 
-The denominator is not important: it is the same throughout.
+---
+
+Finally, to *generate* likely data given a class,
+
+1. Draw a class from $$P(y)$$
+2. Draw data from $$P(x, y)$$
 
 ---
 
-Finally, to *generate likely data given a class*,
-
-1. Draw a class from $P(y)$
-2. Draw data from $P(x, y)$
-
----
-
-> “What I cannot create, I do not understand.”
+> What I cannot create, I do not understand.
 
 -- Richard Feynman
 
 ---
 
-# Discriminative models
+## discriminative models
+
+---
 
 Define 3 separate models. Do the same linear combination. Biggest number wins.
 
 $$
-\hat{y}_{\text{low}} = \theta_{\text{low}}^Tx\\
-\hat{y}_{\text{medium}} = \theta_{\text{medium}}^Tx\\
-\hat{y}_{\text{high}} = \theta_{\text{high}}^Tx\\
+\hat{y}_{\text{low}} = \theta_{\text{low}}^Tx
+$$
+<br>
+$$
+\hat{y}_{\text{medium}} = \theta_{\text{medium}}^Tx
+$$
+<br>
+$$
+\hat{y}_{\text{high}} = \theta_{\text{high}}^Tx
 $$
 
-These are *proportional* to the joint distribution of the respective class and the data observed.
+* These are *proportional* to the joint distribution of the respective class and the data observed.
 
 ---
 
@@ -358,32 +410,29 @@ $$
 \begin{equation}
 P(y\vert x)
 = \frac{P(y, x)}{P(x)}
-= \frac{e^{\tilde{y}}}{\sum\limits_{y} e^{\tilde{y}}}
-= \frac{e^{\big(\sum\limits_{i}w_ix_i\big)_{\tilde y}}}{\sum\limits_{y} e^{\big(\sum\limits_{i}w_ix_i\big)_{\tilde y}}}
+= \frac{e^{\hat{y}}}{\sum\limits_{y} e^{\hat{y}}}
+= \frac{e^{\big(\sum\limits_{i}w_ix_i\big)_{\hat y}}}{\sum\limits_{y} e^{\big(\sum\limits_{i}w_ix_i\big)_{\hat y}}}
 \end{equation}
 $$
 
-$e$, because the numerator needs to be bigger than the denominator.
+$$e$$, because the numerator needs to be bigger than the denominator.
 
 ---
 
-We won't compute the true $P(y, x)$; our model will not learn the true distribution of data within each class.
-
-Instead:
+We don't compute the true $$P(y, x)$$; our model will not learn the true distribution of data within each class.
 
 $$
 P(y\vert x) = \frac{P(y, x)}{P(x)} = \frac{\tilde{P}(y, x)}{\text{normalizer}}
 $$
-
-This, of course, you'll recognize as the softmax function.
 
 ---
 
 ```python
 linear_regression(loss=mean_squared_error).fit()
 ```
+--
 
-Maximize the likelihood of the normally-distributed response variable under some set of weights.
+Maximize the likelihood of the normally-distributed response variable with respect to some set of weights (and fixed data).
 
 ---
 
@@ -391,7 +440,9 @@ Maximize the likelihood of the normally-distributed response variable under some
 logistic_regression(loss=log_loss).fit()
 ```
 
-Maximize the likelihood of the binomially-distributed response variable under some set of weights.
+--
+
+Maximize the likelihood of the binomially-distributed response variable with respect to some set of weights (and fixed data).
 
 ---
 
@@ -399,7 +450,9 @@ Maximize the likelihood of the binomially-distributed response variable under so
 naive_bayes(loss=negative_log_joint_likelihood).predict()
 ```
 
-Compute the joint probability $P(X, y)$ of the data and response variables, then take the argmax.
+--
+
+Compute the joint probability $$P(x, y)$$ of the data and response variables, then take the argmax.
 
 ---
 
@@ -407,13 +460,19 @@ Compute the joint probability $P(X, y)$ of the data and response variables, then
 neural_network(loss=categorical_cross_entropy).predict()
 ```
 
-Compute the conditional distribution $P(y\vert x)$ of the data and response variables. Therein, an *unnormalized* joint probability is computed — not the real thing.
+--
+
+Compute the conditional distribution $$P(y\vert x)$$ of the response variables given the data. Therein, an *unnormalized* joint probability is computed — not the real thing.
 
 ---
 
-Machine learning libraries like scikit-learn are a terrific resource (and it is only in rare circumstance that you should hand-roll a model yourself).
+*Machine learning libraries like scikit-learn are a terrific resource (and it is only in rare circumstance that you should hand-roll a model yourself).*
 
-This said, please do note: when you're calling `.fit()` and `.predict()`, you've been doing statistics all along.
+---
+
+*This said, please do note:*
+
+_**When you're calling `.fit()` and `.predict()`, you've been doing statistics all along.**_
 
 ---
 
