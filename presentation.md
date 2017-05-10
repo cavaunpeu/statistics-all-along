@@ -480,3 +480,5 @@ _**When you're calling `.fit()` and `.predict()`, you've been doing statistics a
 ---
 
 [github.com/cavaunpeu/statistics-all-along](https://github.com/cavaunpeu/statistics-all-along)
+
+[@willwolf_](http://twitter.com/willwolf_)
