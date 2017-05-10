@@ -131,10 +131,10 @@ The realized values of a random variable are dictated by its probability distrib
 
 ---
 
-Let's start by writing our data as draws from a distribution.
+Let's start by writing the components of our model as draws from a distribution.
 
 $$
-P(\theta), P(X), P(y\vert X, \theta)
+P(\theta), P(X), P(y\vert X; \theta)
 $$
 
 ---
@@ -149,19 +149,19 @@ where $$\mathcal{N}$$ gives the normal distribution.
 
 ---
 
-Naturally, will assume that $$\mu = \theta^Tx$$, where $$\sigma$$ describes some irreducible error in our estimate of $$y$$.
+Naturally, we'll assume that $$\mu = \theta^Tx$$, where $$\sigma$$ describes some "irreducible error" in our estimate of $$y$$.
 
-Irreducible error means: $$y$$ really depends on some other input - e.g. `df['zebras']` - that we haven't included in our model.
+* Irreducible error means: $$y$$ really depends on some other input - e.g. `df['zebras']` - that we haven't included in our model.
 
 ---
 
-## likelihood functions
+## probability density functions
 
 ---
 
 The values of $$y$$ are distributed as $$y \sim \mathcal{N}(\theta^Tx, \sigma^2)$$.
 
-The probability of drawing a specific value of $$y^{(i)}$$ given $$x^{(i)}$$ and $$\theta$$ is given by the normal likelihood function.
+The probability of drawing a specific value of $$y^{(i)}$$ given $$x^{(i)}$$ and $$\theta$$ is given by the normal density function.
 
 ---
 
@@ -207,12 +207,7 @@ $$
 P(y\vert x; \theta) = \prod\limits_{i=1}^{m}P(y^{(i)}\vert x^{(i)}; \theta)
 $$
 
-_**There is nothing scary about this product**_; whereas the lone term gives the likelihood of one data point, the product gives the likelihood of having observed all data points. This is akin to:
-
-```python
-die = choose_from([1, 2, 3, 4, 5, 6])
-P(die > 2, die < 4, die == 1) = 4/6 * 3/6 * 1/6
-```
+_**There is nothing scary about this product**_; whereas the lone term gives the likelihood of one data point, the product gives the likelihood of having observed all data points.
 
 ---
 
@@ -236,7 +231,7 @@ _**Maximizing the log-likelihood of our data with respect to $$\theta$$, i.e. `w
 
 Most optimization routines minimize.
 
-_**Minimizing the log-likelihood of our data with respect to $$\theta$$, i.e. `weights`, is equivalent to minimizing the mean squared error between $$y$$ and $$\hat{y}$$.**_
+_**Minimizing the negative log-likelihood of our data with respect to $$\theta$$, i.e. `weights`, is equivalent to minimizing the mean squared error between $$y$$ and $$\hat{y}$$.**_
 
 ---
 
@@ -374,7 +369,7 @@ np.argmax([P(x, y) for y in ['low', 'medium', 'high']])
 Finally, to *generate* likely data given a class,
 
 1. Draw a class from $$P(y)$$
-2. Draw data from $$P(x, y)$$
+2. Draw data from $$P(x\vert y)$$
 
 ---
 
