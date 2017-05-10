@@ -1,4 +1,4 @@
-# Discriminative vs. Generative Models
+# you've been doing statistics all along
 ---
 
 # ML is:
@@ -255,5 +255,172 @@ $$
 
 This will look familiar as well.
 
+---
+
+![](./figures/bayes_theorem_betanalpha.png)
+
+---
+
+Bayes Theoreom:
+
+$$
+P(y \vert X) = \frac{P(X\vert y)P(y)}{P(X)} = \frac{P(X, y)}{P(X)}
+$$
+
+---
+
+# Multi-class classification
+
+---
+
+| dogs | cats | headache |
+|---------|----------|----------|
+| 3       | 4        | high        |
+| 1       | 9        | high        |
+| 2       | 2        | low        |
+| 5       | 1        | medium        |
+| 3       | 3        | low        |
+| 6       | 5        | high        |
+| 4       | 8        | low        |
+| 7       | 1        | medium        |
+
+---
+
+Discriminative models jump directly to estimating $P(y \vert X)$ without modeling its component parts $P(X\vert y), P(y)$ and $P(X)$.
+
+In effect, they can distinguish Darija from French, but can't speak either.
+
+---
+
+Generative models model $P(X\vert y), P(y)$ and $P(X)$. To generate new data, we draw from $P(y)$, then $P(X\vert y)$. To make predictions, we solicit $P(y), P(X\vert y)$, and $P(X)$, then employ Bayes rule outright.
+
+Generative models speak fluent Darija and French. They can distinguish the two because duh, they speak each one and know their differences.
+
+---
+
+# Generative models
+
+---
+
+# The joint distribution
+
+Generative models start by modeling the *joint distribution* of our data, i.e. $P(X, y) = P(X\vert y)P(y)$. Wikipedia (via [this](http://stackoverflow.com/questions/879432/what-is-the-difference-between-a-generative-and-discriminative-algorithm) StackOverflow thread, I think) gives a great example of the difference between joint and conditional distributions:
+
+![](./figures/joint_vs_conditional_distributions.png)
+
+---
+
+# Naive Bayes
+
+$$
+P_{\theta}(x, y) = P_{\theta}(x\vert y)P_{\theta}(y) = P_{\theta}(y)\prod\limits_{i=1}^m P_{\theta}(x_i\vert y)
+$$
+
+- Estimate $\hat{\theta}$ as before
+- To make a prediction:
+
+```python
+np.argmax([P(x, y) for y in ['low', 'medium', 'high']])
+```
+
+The denominator is not important: it is the same throughout.
+
+---
+
+Finally, to *generate likely data given a class*,
+
+1. Draw a class from $P(y)$
+2. Draw data from $P(x, y)$
+
+---
+
+> “What I cannot create, I do not understand.”
+
+-- Richard Feynman
+
+---
+
+# Discriminative models
+
+Define 3 separate models. Do the same linear combination. Biggest number wins.
+
+$$
+\hat{y}_{\text{low}} = \theta_{\text{low}}^Tx\\
+\hat{y}_{\text{medium}} = \theta_{\text{medium}}^Tx\\
+\hat{y}_{\text{high}} = \theta_{\text{high}}^Tx\\
+$$
+
+These are *proportional* to the joint distribution of the respective class and the data observed.
+
+---
+
+$$
+\begin{equation}
+P(y\vert x)
+= \frac{P(y, x)}{P(x)}
+= \frac{e^{\tilde{y}}}{\sum\limits_{y} e^{\tilde{y}}}
+= \frac{e^{\big(\sum\limits_{i}w_ix_i\big)_{\tilde y}}}{\sum\limits_{y} e^{\big(\sum\limits_{i}w_ix_i\big)_{\tilde y}}}
+\end{equation}
+$$
+
+$e$, because the numerator needs to be bigger than the denominator.
+
+---
+
+We won't compute the true $P(y, x)$; our model will not learn the true distribution of data within each class.
+
+Instead:
+
+$$
+P(y\vert x) = \frac{P(y, x)}{P(x)} = \frac{\tilde{P}(y, x)}{\text{normalizer}}
+$$
+
+This, of course, you'll recognize as the softmax function.
+
+---
+
+```python
+linear_regression(loss=mean_squared_error).fit()
+```
+
+Maximize the likelihood of the normally-distributed response variable under some set of weights.
+
+---
+
+```python
+logistic_regression(loss=log_loss).fit()
+```
+
+Maximize the likelihood of the binomially-distributed response variable under some set of weights.
+
+---
+
+```python
+naive_bayes(loss=negative_log_joint_likelihood).predict()
+```
+
+Compute the joint probability $P(X, y)$ of the data and response variables, then take the argmax.
+
+---
+
+```python
+neural_network(loss=categorical_cross_entropy).predict()
+```
+
+Compute the conditional distribution $P(y\vert x)$ of the data and response variables. Therein, an *unnormalized* joint probability is computed — not the real thing.
+
+---
+
+Machine learning libraries like scikit-learn are a terrific resource (and it is only in rare circumstance that you should hand-roll a model yourself).
+
+This said, please do note: when you're calling `.fit()` and `.predict()`, you've been doing statistics all along.
+
+---
+
 # Resources
-- [Andrew Ng](http://cs229.stanford.edu/notes/cs229-notes1.pdf)
+- [Stanford University CS229](http://cs229.stanford.edu/notes/cs229-notes1.pdf)
+- [StackOverflow discussion on discriminative vs. generative models](http://stackoverflow.com/questions/879432/what-is-the-difference-between-a-generative-and-discriminative-algorithm)
+- [CrossValidated discussion on discriminative vs. generative models](https://stats.stackexchange.com/questions/12421/generative-vs-discriminative)
+- [On Discriminative vs. Generative classifiers: A comparison of logistic regression and naive Bayes](http://papers.nips.cc/paper/2020-on-discriminative-vs-generative-classifiers-a-comparison-of-logistic-regression-and-naive-bayes.pdf)
+
+---
