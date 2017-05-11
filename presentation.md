@@ -410,7 +410,7 @@ P(y\vert x)
 \end{equation}
 $$
 
-$$e$$, because the numerator needs to be bigger than the denominator.
+$$e$$, because the numerator needs to be smaller than the denominator.
 
 ---
 
